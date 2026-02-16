@@ -1,23 +1,23 @@
+// components/app-sidebar.tsx
 "use client"
 
 import * as React from "react"
 import {
-  IconCamera,
-  IconChartBar,
   IconDashboard,
   IconDatabase,
-  IconFileAi,
-  IconFileDescription,
   IconFileWord,
-  IconFolder,
   IconHelp,
   IconInnerShadowTop,
-  IconListDetails,
+  IconPackage,
   IconReport,
   IconSearch,
   IconSettings,
+  IconShoppingCart,
+  IconTrendingUp,
   IconUsers,
 } from "@tabler/icons-react"
+import { User } from '@supabase/supabase-js'
+import { usePathname } from 'next/navigation'
 
 import { NavDocuments } from '@/components/nav-documents'
 import { NavMain } from '@/components/nav-main'
@@ -34,125 +34,79 @@ import {
 } from '@/components/ui/sidebar'
 
 const data = {
-  user: {
-    name: "Admin User",
-    email: "admin@sportshop.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/dashboard",
       icon: IconDashboard,
     },
     {
       title: "Products",
-      url: "#",
-      icon: IconListDetails,
-    },
-    {
-      title: "Sales Analytics",
-      url: "#",
-      icon: IconChartBar,
+      url: "/dashboard/inventory",
+      icon: IconPackage,
     },
     {
       title: "Orders",
-      url: "#",
-      icon: IconFolder,
+      url: "/dashboard/orders",
+      icon: IconShoppingCart,
+    },
+    {
+      title: "Sales Analytics",
+      url: "/dashboard/analytics",
+      icon: IconTrendingUp,
     },
     {
       title: "Customers",
-      url: "#",
+      url: "/dashboard/customers",
       icon: IconUsers,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Inventory",
-      icon: IconCamera,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Low Stock Alert",
-          url: "#",
-        },
-        {
-          title: "Stock Levels",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Marketing",
-      icon: IconFileDescription,
-      url: "#",
-      items: [
-        {
-          title: "Campaigns",
-          url: "#",
-        },
-        {
-          title: "Promotions",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Reports",
-      icon: IconFileAi,
-      url: "#",
-      items: [
-        {
-          title: "Sales Reports",
-          url: "#",
-        },
-        {
-          title: "Performance",
-          url: "#",
-        },
-      ],
     },
   ],
   navSecondary: [
     {
       title: "Settings",
-      url: "#",
+      url: "/dashboard/settings",
       icon: IconSettings,
     },
     {
       title: "Help & Support",
-      url: "#",
+      url: "/dashboard/help",
       icon: IconHelp,
     },
     {
       title: "Search",
-      url: "#",
+      url: "/dashboard/search",
       icon: IconSearch,
     },
   ],
   documents: [
     {
-      name: "Inventory Management",
-      url: "#",
+      name: "Inventory Report",
+      url: "/dashboard/reports/inventory",
       icon: IconDatabase,
     },
     {
       name: "Sales Reports",
-      url: "#",
+      url: "/dashboard/reports/sales",
       icon: IconReport,
     },
     {
       name: "Documentation",
-      url: "#",
+      url: "/dashboard/docs",
       icon: IconFileWord,
     },
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ user, ...props }: React.ComponentProps<typeof Sidebar> & { user: User | null }) {
+  const pathname = usePathname()
+  const userData = {
+    name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || "User",
+    email: user?.email || "",
+    avatar: user?.user_metadata?.avatar_url || "",
+  }
+
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
+    <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -160,21 +114,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
+              <a href="/dashboard">
                 <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">SportsPro Shop</span>
+                <span className="text-base font-semibold">Sahyadri Sports</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavMain items={data.navMain} pathname={pathname} />
+        <NavDocuments items={data.documents} pathname={pathname} />
+        <NavSecondary items={data.navSecondary} pathname={pathname} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={userData} />
       </SidebarFooter>
     </Sidebar>
   )
