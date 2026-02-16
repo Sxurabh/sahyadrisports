@@ -48,12 +48,30 @@ export function LoginForm({
     setLoading(false)
   }
 
+  const getRedirectUrl = () => {
+    let url = process.env.NEXT_PUBLIC_SITE_URL ?? // Set this to your site URL in production env.
+      process.env.NEXT_PUBLIC_VERCEL_URL ?? // Automatically set by Vercel.
+      (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+
+    // Make sure to include `https://` when not localhost.
+    url = url.includes('http') ? url : `https://${url}`;
+
+    // Make sure to include the path `auth/callback`.
+    // It should not end in a slash.
+    url = url.charAt(url.length - 1) === '/' ? url : `${url}/`;
+    url = `${url}auth/callback`;
+    return url;
+  };
+
   const handleOAuthSignIn = async (provider: "google" | "github") => {
     setLoading(true)
+    const redirectTo = getRedirectUrl();
+    console.log("Redirecting to:", redirectTo); // Debugging aid
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? location.origin}/auth/callback`,
+        redirectTo,
       },
     })
     if (error) {
