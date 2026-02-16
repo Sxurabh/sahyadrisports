@@ -42,13 +42,18 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/dashboard",
       icon: IconDashboard,
     },
     {
       title: "Products",
-      url: "#",
+      url: "/dashboard/inventory",
       icon: IconListDetails,
+    },
+    {
+      title: "Orders",
+      url: "/dashboard/orders",
+      icon: IconFolder,
     },
     {
       title: "Sales Analytics",
@@ -56,62 +61,9 @@ const data = {
       icon: IconChartBar,
     },
     {
-      title: "Orders",
-      url: "#",
-      icon: IconFolder,
-    },
-    {
       title: "Customers",
       url: "#",
       icon: IconUsers,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Inventory",
-      icon: IconCamera,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Low Stock Alert",
-          url: "#",
-        },
-        {
-          title: "Stock Levels",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Marketing",
-      icon: IconFileDescription,
-      url: "#",
-      items: [
-        {
-          title: "Campaigns",
-          url: "#",
-        },
-        {
-          title: "Promotions",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Reports",
-      icon: IconFileAi,
-      url: "#",
-      items: [
-        {
-          title: "Sales Reports",
-          url: "#",
-        },
-        {
-          title: "Performance",
-          url: "#",
-        },
-      ],
     },
   ],
   navSecondary: [
@@ -152,7 +104,7 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
+    <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
