@@ -56,11 +56,15 @@ export function LoginForm({
     // Make sure to include `https://` when not localhost.
     url = url.includes('http') ? url : `https://${url}`;
 
-    // Make sure to include the path `auth/callback`.
-    // It should not end in a slash.
-    url = url.charAt(url.length - 1) === '/' ? url : `${url}/`;
-    url = `${url}auth/callback`;
-    return url;
+    // Remove trailing slash if present
+    url = url.replace(/\/+$/, '');
+
+    // If the URL already contains the path, return it as is (to avoid double path)
+    if (url.includes('/auth/callback')) {
+      return url;
+    }
+
+    return `${url}/auth/callback`;
   };
 
   const handleOAuthSignIn = async (provider: "google" | "github") => {
