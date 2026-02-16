@@ -19,10 +19,10 @@ import {
   IconUsers,
 } from "@tabler/icons-react"
 
-import { NavDocuments } from "@/components/nav-documents"
-import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
-import { NavUser } from "@/components/nav-user"
+import { NavDocuments } from '@/components/nav-documents'
+import { NavMain } from '@/components/nav-main'
+import { NavSecondary } from '@/components/nav-secondary'
+import { NavUser } from '@/components/nav-user'
 import {
   Sidebar,
   SidebarContent,
@@ -31,12 +31,12 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar'
 
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
+    name: "Admin User",
+    email: "admin@sportshop.com",
     avatar: "/avatars/shadcn.jpg",
   },
   navMain: [
@@ -46,69 +46,69 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Lifecycle",
+      title: "Products",
       url: "#",
       icon: IconListDetails,
     },
     {
-      title: "Analytics",
+      title: "Sales Analytics",
       url: "#",
       icon: IconChartBar,
     },
     {
-      title: "Projects",
+      title: "Orders",
       url: "#",
       icon: IconFolder,
     },
     {
-      title: "Team",
+      title: "Customers",
       url: "#",
       icon: IconUsers,
     },
   ],
   navClouds: [
     {
-      title: "Capture",
+      title: "Inventory",
       icon: IconCamera,
       isActive: true,
       url: "#",
       items: [
         {
-          title: "Active Proposals",
+          title: "Low Stock Alert",
           url: "#",
         },
         {
-          title: "Archived",
+          title: "Stock Levels",
           url: "#",
         },
       ],
     },
     {
-      title: "Proposal",
+      title: "Marketing",
       icon: IconFileDescription,
       url: "#",
       items: [
         {
-          title: "Active Proposals",
+          title: "Campaigns",
           url: "#",
         },
         {
-          title: "Archived",
+          title: "Promotions",
           url: "#",
         },
       ],
     },
     {
-      title: "Prompts",
+      title: "Reports",
       icon: IconFileAi,
       url: "#",
       items: [
         {
-          title: "Active Proposals",
+          title: "Sales Reports",
           url: "#",
         },
         {
-          title: "Archived",
+          title: "Performance",
           url: "#",
         },
       ],
@@ -121,7 +121,7 @@ const data = {
       icon: IconSettings,
     },
     {
-      title: "Get Help",
+      title: "Help & Support",
       url: "#",
       icon: IconHelp,
     },
@@ -133,17 +133,17 @@ const data = {
   ],
   documents: [
     {
-      name: "Data Library",
+      name: "Inventory Management",
       url: "#",
       icon: IconDatabase,
     },
     {
-      name: "Reports",
+      name: "Sales Reports",
       url: "#",
       icon: IconReport,
     },
     {
-      name: "Word Assistant",
+      name: "Documentation",
       url: "#",
       icon: IconFileWord,
     },
@@ -162,7 +162,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <a href="#">
                 <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <span className="text-base font-semibold">SportsPro Shop</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
