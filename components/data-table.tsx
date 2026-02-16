@@ -114,6 +114,9 @@ export const schema = z.object({
   stock: z.string(),
   price: z.string(),
   manager: z.string(),
+  target: z.string().optional(),
+  limit: z.string().optional(),
+  reviewer: z.string().optional(),
 })
 
 // Create a separate component for the drag handle
@@ -497,9 +500,9 @@ export function DataTable({
                           {header.isPlaceholder
                             ? null
                             : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                         </TableHead>
                       )
                     })}
