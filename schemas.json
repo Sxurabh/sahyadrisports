@@ -1,0 +1,109 @@
+{
+  "items": {
+    "id": {
+      "default": "extensions.uuid_generate_v4()",
+      "description": "Note:\nThis is a Primary Key.<pk/>",
+      "format": "uuid",
+      "type": "string"
+    },
+    "order_id": {
+      "description": "Note:\nThis is a Foreign Key to `orders.id`.<fk table='orders' column='id'/>",
+      "format": "text",
+      "type": "string"
+    },
+    "product_id": {
+      "description": "Note:\nThis is a Foreign Key to `products.id`.<fk table='products' column='id'/>",
+      "format": "uuid",
+      "type": "string"
+    },
+    "quantity": {
+      "format": "integer",
+      "type": "integer"
+    },
+    "unit_price": {
+      "format": "numeric",
+      "type": "number"
+    }
+  },
+  "products": {
+    "id": {
+      "default": "extensions.uuid_generate_v4()",
+      "description": "Note:\nThis is a Primary Key.<pk/>",
+      "format": "uuid",
+      "type": "string"
+    },
+    "name": {
+      "format": "text",
+      "type": "string"
+    },
+    "sku": {
+      "format": "text",
+      "type": "string"
+    },
+    "category": {
+      "format": "text",
+      "type": "string"
+    },
+    "brand": {
+      "format": "text",
+      "type": "string"
+    },
+    "price": {
+      "format": "numeric",
+      "type": "number"
+    },
+    "stock": {
+      "default": 0,
+      "format": "integer",
+      "type": "integer"
+    },
+    "manager": {
+      "format": "text",
+      "type": "string"
+    },
+    "created_at": {
+      "default": "timezone('utc'::text, now())",
+      "format": "timestamp with time zone",
+      "type": "string"
+    }
+  },
+  "customers": {
+    "id": {
+      "default": "extensions.uuid_generate_v4()",
+      "description": "Note:\nThis is a Primary Key.<pk/>",
+      "format": "uuid",
+      "type": "string"
+    },
+    "name": {
+      "format": "text",
+      "type": "string"
+    },
+    "email": {
+      "format": "text",
+      "type": "string"
+    },
+    "phone": {
+      "format": "text",
+      "type": "string"
+    },
+    "status": {
+      "default": "Active",
+      "enum": [
+        "Active",
+        "Inactive",
+        "VIP"
+      ],
+      "format": "public.customer_status",
+      "type": "string"
+    },
+    "avatar_url": {
+      "format": "text",
+      "type": "string"
+    },
+    "created_at": {
+      "default": "timezone('utc'::text, now())",
+      "format": "timestamp with time zone",
+      "type": "string"
+    }
+  }
+}

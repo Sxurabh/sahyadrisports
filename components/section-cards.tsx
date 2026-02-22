@@ -10,14 +10,30 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 
-export function SectionCards() {
+type StatsProps = {
+  stats: {
+    totalSales: number
+    ordersThisWeek: number
+    productsInStock: number
+    lowStockItems: number
+  }
+}
+
+export function SectionCards({ stats }: StatsProps) {
+  // Format currency
+  const formattedSales = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0
+  }).format(stats.totalSales)
+
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
       <Card className="@container/card">
         <CardHeader>
           <CardDescription>Total Sales</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            $28,450
+            {formattedSales}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
@@ -39,7 +55,7 @@ export function SectionCards() {
         <CardHeader>
           <CardDescription>Products In Stock</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            2,847
+            {stats.productsInStock}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
@@ -61,7 +77,7 @@ export function SectionCards() {
         <CardHeader>
           <CardDescription>Orders This Week</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            892
+            {stats.ordersThisWeek}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
@@ -80,8 +96,8 @@ export function SectionCards() {
       <Card className="@container/card">
         <CardHeader>
           <CardDescription>Low Stock Items</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            23
+          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl text-destructive">
+            {stats.lowStockItems}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">

@@ -53,6 +53,7 @@ import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 import { toast } from "sonner"
 import { z } from "zod"
 
+import { type Product, addProduct, updateProduct, deleteProduct } from "@/app/actions"
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -63,6 +64,15 @@ import {
   type ChartConfig,
 } from '@/components/ui/chart'
 import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import {
   Drawer,
   DrawerClose,
@@ -107,20 +117,18 @@ import {
 } from '@/components/ui/tabs'
 
 export const schema = z.object({
-  id: z.number(),
-  header: z.string(),
-  type: z.string(),
-  status: z.string(),
-  stock: z.string(),
-  price: z.string(),
-  manager: z.string(),
-  target: z.string().optional(),
-  limit: z.string().optional(),
-  reviewer: z.string().optional(),
+  id: z.string(),
+  name: z.string(),
+  category: z.string(),
+  stock: z.number(),
+  price: z.number(),
+  sku: z.string(),
+  brand: z.string(),
+  status: z.enum(["In Stock", "Low Stock", "Out of Stock"]),
 })
 
 // Create a separate component for the drag handle
-function DragHandle({ id }: { id: number }) {
+function DragHandle({ id }: { id: string }) {
   const { attributes, listeners } = useSortable({
     id,
   })
@@ -172,144 +180,134 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "header",
-    header: "Product Name",
+    accessorKey: "name",
+    header: () => <div className="text-center">Product Name</div>,
     cell: ({ row }) => {
-      return <TableCellViewer item={row.original} />
+      return <div className="flex justify-center w-full"><TableCellViewer item={row.original as unknown as Product} /></div>
     },
     enableHiding: false,
   },
   {
-    accessorKey: "type",
-    header: "Category",
+    accessorKey: "category",
+    header: () => <div className="text-center">Category</div>,
     cell: ({ row }) => (
-      <div className="w-32">
-        <Badge variant="outline" className="text-muted-foreground px-1.5">
-          {row.original.type}
+      <div className="flex justify-center w-full">
+        <Badge variant="outline" className="text-muted-foreground px-1.5 capitalize">
+          {row.original.category}
         </Badge>
       </div>
     ),
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: () => <div className="text-center">Status</div>,
     cell: ({ row }) => (
-      <Badge variant="outline" className="text-muted-foreground px-1.5">
-        {row.original.status === "In Stock" ? (
-          <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
-        ) : (
-          <IconLoader />
-        )}
-        {row.original.status}
-      </Badge>
+      <div className="flex justify-center w-full">
+        <Badge variant="outline" className="text-muted-foreground px-1.5">
+          {row.original.status === "In Stock" ? (
+            <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
+          ) : (
+            <IconLoader />
+          )}
+          {row.original.status}
+        </Badge>
+      </div>
     ),
   },
   {
     accessorKey: "stock",
-    header: () => <div className="w-full text-right">Stock</div>,
+    header: () => <div className="w-full text-center">Stock</div>,
     cell: ({ row }) => (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: `Saving ${row.original.header}`,
-            success: "Done",
-            error: "Error",
-          })
-        }}
-      >
-        <Label htmlFor={`${row.original.id}-stock`} className="sr-only">
-          Stock
-        </Label>
-        <Input
-          className="hover:bg-input/30 focus-visible:bg-background dark:hover:bg-input/30 dark:focus-visible:bg-input/30 h-8 w-16 border-transparent bg-transparent text-right shadow-none focus-visible:border dark:bg-transparent"
-          defaultValue={row.original.stock}
-          id={`${row.original.id}-stock`}
-        />
-      </form>
+      <div className="flex justify-center w-full">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
+              loading: `Saving ${row.original.name}`,
+              success: "Done",
+              error: "Error",
+            })
+          }}
+        >
+          <Label htmlFor={`${row.original.id}-stock`} className="sr-only">
+            Stock
+          </Label>
+          <Input
+            className="hover:bg-input/30 focus-visible:bg-background dark:hover:bg-input/30 dark:focus-visible:bg-input/30 h-8 w-16 border-transparent bg-transparent text-center shadow-none focus-visible:border dark:bg-transparent"
+            defaultValue={row.original.stock}
+            id={`${row.original.id}-stock`}
+          />
+        </form>
+      </div>
     ),
   },
   {
     accessorKey: "price",
-    header: () => <div className="w-full text-right">Price</div>,
+    header: () => <div className="w-full text-center">Price</div>,
     cell: ({ row }) => (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: `Saving ${row.original.header}`,
-            success: "Done",
-            error: "Error",
-          })
-        }}
-      >
-        <Label htmlFor={`${row.original.id}-price`} className="sr-only">
-          Price
-        </Label>
-        <Input
-          className="hover:bg-input/30 focus-visible:bg-background dark:hover:bg-input/30 dark:focus-visible:bg-input/30 h-8 w-20 border-transparent bg-transparent text-right shadow-none focus-visible:border dark:bg-transparent"
-          defaultValue={row.original.price}
-          id={`${row.original.id}-price`}
-        />
-      </form>
+      <div className="flex justify-center w-full">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
+              loading: `Saving ${row.original.name}`,
+              success: "Done",
+              error: "Error",
+            })
+          }}
+        >
+          <Label htmlFor={`${row.original.id}-price`} className="sr-only">
+            Price
+          </Label>
+          <div className="relative">
+            <span className="absolute left-2 top-1.5 text-muted-foreground text-sm">₹</span>
+            <Input
+              className="pl-6 hover:bg-input/30 focus-visible:bg-background dark:hover:bg-input/30 dark:focus-visible:bg-input/30 h-8 w-24 border-transparent bg-transparent text-left shadow-none focus-visible:border dark:bg-transparent"
+              defaultValue={row.original.price.toString()}
+              id={`${row.original.id}-price`}
+            />
+          </div>
+        </form>
+      </div>
     ),
   },
   {
-    accessorKey: "manager",
-    header: "Manager",
-    cell: ({ row }) => {
-      const isAssigned = row.original.manager !== "Assign manager"
-
-      if (isAssigned) {
-        return row.original.manager
-      }
-
-      return (
-        <>
-          <Label htmlFor={`${row.original.id}-manager`} className="sr-only">
-            Manager
-          </Label>
-          <Select>
-            <SelectTrigger
-              className="w-38 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate"
-              size="sm"
-              id={`${row.original.id}-manager`}
-            >
-              <SelectValue placeholder="Assign manager" />
-            </SelectTrigger>
-            <SelectContent align="end">
-              <SelectItem value="John Smith">John Smith</SelectItem>
-              <SelectItem value="Sarah Wilson">Sarah Wilson</SelectItem>
-              <SelectItem value="Mike Davis">Mike Davis</SelectItem>
-              <SelectItem value="Emily Brown">Emily Brown</SelectItem>
-            </SelectContent>
-          </Select>
-        </>
-      )
-    },
-  },
-  {
     id: "actions",
-    cell: () => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-            size="icon"
-          >
-            <IconDotsVertical />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem>Make a copy</DropdownMenuItem>
-          <DropdownMenuItem>Favorite</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+    cell: ({ row }) => (
+      <div className="flex justify-center w-full">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
+              size="icon"
+            >
+              <IconDotsVertical />
+              <span className="sr-only">Open menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-32">
+            <DropdownMenuItem onClick={() => {
+              document.getElementById(`drawer-trigger-${row.original.id}`)?.click();
+            }}>Edit</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-destructive font-medium focus:bg-destructive focus:text-destructive-foreground"
+              onClick={async () => {
+                try {
+                  await deleteProduct(row.original.id)
+                  toast.success("Product deleted successfully")
+                  window.location.reload()
+                } catch (error) {
+                  toast.error("Failed to delete product")
+                }
+              }}
+            >
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     ),
   },
 ]
@@ -357,6 +355,7 @@ export function DataTable({
     pageSize: 10,
   })
   const sortableId = React.useId()
+  const [isAddProductOpen, setIsAddProductOpen] = React.useState(false)
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
     useSensor(TouchSensor, {}),
@@ -392,6 +391,17 @@ export function DataTable({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
+
+  async function handleAddSubmit(formData: FormData) {
+    try {
+      await addProduct(formData)
+      toast.success("Product added successfully")
+      setIsAddProductOpen(false)
+      window.location.reload()
+    } catch (error) {
+      toast.error("Failed to add product")
+    }
+  }
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
@@ -431,10 +441,10 @@ export function DataTable({
         <TabsList className="**:data-[slot=badge]:bg-muted-foreground/30 hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1 @4xl/main:flex">
           <TabsTrigger value="all-products">All Products</TabsTrigger>
           <TabsTrigger value="low-stock">
-            Low Stock <Badge variant="secondary">8</Badge>
+            Low Stock <Badge variant="secondary">{data.filter(p => p.status === "Low Stock" || p.stock < 20).length}</Badge>
           </TabsTrigger>
           <TabsTrigger value="sales">
-            Best Sellers <Badge variant="secondary">12</Badge>
+            Best Sellers
           </TabsTrigger>
           <TabsTrigger value="categories">By Category</TabsTrigger>
         </TabsList>
@@ -472,10 +482,51 @@ export function DataTable({
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" size="sm">
-            <IconPlus />
-            <span className="hidden lg:inline">Add Product</span>
-          </Button>
+          <Dialog open={isAddProductOpen} onOpenChange={setIsAddProductOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <IconPlus />
+                <span className="hidden lg:inline">Add Product</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <form action={handleAddSubmit} className="grid gap-4 py-4">
+                <DialogHeader>
+                  <DialogTitle>Add New Product</DialogTitle>
+                  <DialogDescription>Create a new product in your inventory.</DialogDescription>
+                </DialogHeader>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="req-name" className="text-right">Name</Label>
+                  <Input id="req-name" name="name" className="col-span-3" placeholder="Product name" required />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="req-category" className="text-right">Category</Label>
+                  <Select name="category" required>
+                    <SelectTrigger id="req-category" className="col-span-3">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Footwear">Footwear</SelectItem>
+                      <SelectItem value="Apparel">Apparel</SelectItem>
+                      <SelectItem value="Equipment">Equipment</SelectItem>
+                      <SelectItem value="Accessories">Accessories</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="req-price" className="text-right">Price</Label>
+                  <Input id="req-price" name="price" type="number" step="0.01" className="col-span-3" placeholder="0.00" required />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="req-stock" className="text-right">Stock</Label>
+                  <Input id="req-stock" name="stock" type="number" className="col-span-3" placeholder="0" required />
+                </div>
+                <DialogFooter>
+                  <Button type="submit">Save Product</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
       <TabsContent
@@ -650,21 +701,33 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
+function TableCellViewer({ item }: { item: Product }) {
   const isMobile = useIsMobile()
+
+  const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    try {
+      await updateProduct(item.id, formData);
+      toast.success("Product updated successfully");
+      window.location.reload();
+    } catch (err) {
+      toast.error("Failed to update product");
+    }
+  };
 
   return (
     <Drawer direction={isMobile ? "bottom" : "right"}>
       <DrawerTrigger asChild>
-        <Button variant="link" className="text-foreground w-fit px-0 text-left">
-          {item.header}
+        <Button variant="link" id={`drawer-trigger-${item.id}`} className="text-foreground w-fit px-0 text-left">
+          {item.name}
         </Button>
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="gap-1">
-          <DrawerTitle>{item.header}</DrawerTitle>
+          <DrawerTitle>{item.name}</DrawerTitle>
           <DrawerDescription>
-            Showing total visitors for the last 6 months
+            SKU: {item.sku} | Brand: {item.brand}
           </DrawerDescription>
         </DrawerHeader>
         <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
@@ -725,77 +788,36 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
               <Separator />
             </>
           )}
-          <form className="flex flex-col gap-4">
+          <form onSubmit={handleEditSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-3">
-              <Label htmlFor="header">Header</Label>
-              <Input id="header" defaultValue={item.header} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="type">Type</Label>
-                <Select defaultValue={item.type}>
-                  <SelectTrigger id="type" className="w-full">
-                    <SelectValue placeholder="Select a type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Table of Contents">
-                      Table of Contents
-                    </SelectItem>
-                    <SelectItem value="Executive Summary">
-                      Executive Summary
-                    </SelectItem>
-                    <SelectItem value="Technical Approach">
-                      Technical Approach
-                    </SelectItem>
-                    <SelectItem value="Design">Design</SelectItem>
-                    <SelectItem value="Capabilities">Capabilities</SelectItem>
-                    <SelectItem value="Focus Documents">
-                      Focus Documents
-                    </SelectItem>
-                    <SelectItem value="Narrative">Narrative</SelectItem>
-                    <SelectItem value="Cover Page">Cover Page</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="status">Status</Label>
-                <Select defaultValue={item.status}>
-                  <SelectTrigger id="status" className="w-full">
-                    <SelectValue placeholder="Select a status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Done">Done</SelectItem>
-                    <SelectItem value="In Progress">In Progress</SelectItem>
-                    <SelectItem value="Not Started">Not Started</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="target">Target</Label>
-                <Input id="target" defaultValue={item.target} />
-              </div>
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="limit">Limit</Label>
-                <Input id="limit" defaultValue={item.limit} />
-              </div>
+              <Label htmlFor="header">Product Name</Label>
+              <Input id="header" name="name" defaultValue={item.name} />
             </div>
             <div className="flex flex-col gap-3">
-              <Label htmlFor="reviewer">Reviewer</Label>
-              <Select defaultValue={item.reviewer}>
-                <SelectTrigger id="reviewer" className="w-full">
-                  <SelectValue placeholder="Select a reviewer" />
+              <Label htmlFor="type">Category</Label>
+              <Select name="category" defaultValue={item.category}>
+                <SelectTrigger id="type" className="w-full">
+                  <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Eddie Lake">Eddie Lake</SelectItem>
-                  <SelectItem value="Jamik Tashpulatov">
-                    Jamik Tashpulatov
-                  </SelectItem>
-                  <SelectItem value="Emily Whalen">Emily Whalen</SelectItem>
+                  <SelectItem value="Footwear">Footwear</SelectItem>
+                  <SelectItem value="Apparel">Apparel</SelectItem>
+                  <SelectItem value="Equipment">Equipment</SelectItem>
+                  <SelectItem value="Accessories">Accessories</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="stock">Stock</Label>
+                <Input id="stock" name="stock" type="number" defaultValue={item.stock} />
+              </div>
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="price">Price</Label>
+                <Input id="price" name="price" type="number" step="0.01" defaultValue={item.price} />
+              </div>
+            </div>
+            <Button type="submit" className="w-full mt-2">Save Changes</Button>
           </form>
         </div>
         <DrawerFooter>

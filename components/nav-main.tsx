@@ -1,6 +1,7 @@
 // components/nav-main.tsx
 "use client"
 
+import * as React from "react"
 import { IconCirclePlusFilled, IconMail, type Icon } from "@tabler/icons-react"
 import Link from "next/link"
 import { cn } from '@/lib/utils'
@@ -13,6 +14,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
+import { QuickCreateModal } from "./quick-create-modal" // Added QuickCreateModal import
 
 export function NavMain({
   items,
@@ -21,10 +23,13 @@ export function NavMain({
   items: {
     title: string
     url: string
-    icon?: Icon
+    icon?: React.ElementType
+    isActive?: boolean
   }[]
   pathname: string
 }) {
+  const [quickCreateOpen, setQuickCreateOpen] = React.useState(false) // Added state for QuickCreateModal
+
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
@@ -32,19 +37,12 @@ export function NavMain({
           <SidebarMenuItem className="flex items-center gap-2">
             <SidebarMenuButton
               tooltip="Quick Create"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground min-w-8 duration-300 ease-in-out"
+              onClick={() => setQuickCreateOpen(true)}
             >
               <IconCirclePlusFilled />
               <span>Quick Create</span>
             </SidebarMenuButton>
-            <Button
-              size="icon"
-              className="size-8 group-data-[collapsible=icon]:opacity-0"
-              variant="outline"
-            >
-              <IconMail />
-              <span className="sr-only">Inbox</span>
-            </Button>
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarMenu>
@@ -67,6 +65,7 @@ export function NavMain({
           })}
         </SidebarMenu>
       </SidebarGroupContent>
+      <QuickCreateModal open={quickCreateOpen} onOpenChange={setQuickCreateOpen} />
     </SidebarGroup>
   )
 }
