@@ -1,0 +1,48 @@
+{
+  "id": {
+    "description": "Note:\nThis is a Primary Key.<pk/>",
+    "format": "text",
+    "type": "string"
+  },
+  "customer_id": {
+    "description": "Note:\nThis is a Foreign Key to `customers.id`.<fk table='customers' column='id'/>",
+    "format": "uuid",
+    "type": "string"
+  },
+  "status": {
+    "default": "Pending",
+    "enum": [
+      "Pending",
+      "Processing",
+      "Shipped",
+      "Delivered",
+      "Cancelled"
+    ],
+    "format": "public.order_status",
+    "type": "string"
+  },
+  "payment_status": {
+    "default": "Pending",
+    "enum": [
+      "Paid",
+      "Pending",
+      "Failed"
+    ],
+    "format": "public.payment_status",
+    "type": "string"
+  },
+  "shipping_method": {
+    "format": "text",
+    "type": "string"
+  },
+  "created_at": {
+    "default": "timezone('utc'::text, now())",
+    "format": "timestamp with time zone",
+    "type": "string"
+  },
+  "updated_at": {
+    "default": "timezone('utc'::text, now())",
+    "format": "timestamp with time zone",
+    "type": "string"
+  }
+}

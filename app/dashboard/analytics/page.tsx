@@ -9,66 +9,96 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
-
-// Sample data for charts
-const salesData = [
-    { month: "Jan", sales: 4500, orders: 120, visitors: 3400 },
-    { month: "Feb", sales: 5200, orders: 145, visitors: 4100 },
-    { month: "Mar", sales: 4800, orders: 132, visitors: 3800 },
-    { month: "Apr", sales: 6100, orders: 168, visitors: 5200 },
-    { month: "May", sales: 7200, orders: 195, visitors: 6100 },
-    { month: "Jun", sales: 6800, orders: 182, visitors: 5800 },
-    { month: "Jul", sales: 8100, orders: 220, visitors: 7200 },
-    { month: "Aug", sales: 7900, orders: 215, visitors: 6900 },
-    { month: "Sep", sales: 8500, orders: 235, visitors: 7500 },
-    { month: "Oct", sales: 9200, orders: 258, visitors: 8200 },
-    { month: "Nov", sales: 10500, orders: 290, visitors: 9500 },
-    { month: "Dec", sales: 11800, orders: 325, visitors: 10800 },
-]
-
-const categoryData = [
-    { name: "Footwear", value: 35, color: "hsl(var(--chart-1))" },
-    { name: "Apparel", value: 28, color: "hsl(var(--chart-2))" },
-    { name: "Equipment", value: 20, color: "hsl(var(--chart-3))" },
-    { name: "Accessories", value: 12, color: "hsl(var(--chart-4))" },
-    { name: "Electronics", value: 5, color: "hsl(var(--chart-5))" },
-]
-
-const topProducts = [
-    { name: "Nike Air Max 90", sales: 245, revenue: 29400 },
-    { name: "Adidas Ultraboost 22", sales: 189, revenue: 34020 },
-    { name: "Dri-FIT Training Shirt", sales: 456, revenue: 20520 },
-    { name: "Basketball Pro Jersey", sales: 178, revenue: 11570 },
-    { name: "Running Shorts", sales: 312, revenue: 12168 },
-]
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { getOrders, getProducts } from "@/app/actions"
 
 const chartConfig = {
-    sales: {
-        label: "Sales",
-        color: "hsl(var(--chart-1))",
-    },
-    orders: {
-        label: "Orders",
-        color: "hsl(var(--chart-2))",
-    },
-    visitors: {
-        label: "Visitors",
-        color: "hsl(var(--chart-3))",
-    },
+    sales: { label: "Sales", color: "hsl(var(--chart-1))" },
+    orders: { label: "Orders", color: "hsl(var(--chart-2))" },
+    visitors: { label: "Visitors", color: "hsl(var(--chart-3))" },
 }
 
 export default function AnalyticsPage() {
     const [timeRange, setTimeRange] = React.useState("year")
+    const [salesData, setSalesData] = React.useState<any[]>([])
+    const [categoryData, setCategoryData] = React.useState<any[]>([])
+    const [topProducts, setTopProducts] = React.useState<any[]>([])
+
+    // KPIs
+    const [totalRevenue, setTotalRevenue] = React.useState(0)
+    const [totalOrders, setTotalOrders] = React.useState(0)
+    const [aov, setAov] = React.useState(0)
+
+    React.useEffect(() => {
+        async function loadData() {
+            try {
+                const orders = await getOrders()
+                const products = await getProducts()
+
+                // Monthly Sales Data
+                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+                const monthly: Record<string, any> = {}
+                months.forEach(m => monthly[m] = { month: m, sales: 0, orders: 0, visitors: Math.floor(Math.random() * 5000) + 3000 })
+
+                let rev = 0
+                let ords = 0
+
+                orders.forEach(order => {
+                    if (order.status !== "Cancelled") {
+                        const d = new Date(order.date)
+                        const m = d.toLocaleString('default', { month: 'short' })
+                        if (monthly[m]) {
+                            monthly[m].sales += order.total
+                            monthly[m].orders += 1
+                        }
+                        rev += order.total
+                        ords += 1
+                    }
+                })
+
+                setSalesData(Object.values(monthly))
+                setTotalRevenue(rev)
+                setTotalOrders(ords)
+                setAov(ords > 0 ? rev / ords : 0)
+
+                // Category Data
+                const catCounts: Record<string, number> = {}
+                products.forEach(p => { catCounts[p.category] = (catCounts[p.category] || 0) + 1 })
+
+                const cColors = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))"]
+                const catList = Object.entries(catCounts).map(([name, count], idx) => ({
+                    name,
+                    value: Math.round((count / products.length) * 100),
+                    color: cColors[idx % cColors.length]
+                }))
+                setCategoryData(catList)
+
+                // Top Products
+                const sortedP = [...products].sort((a, b) => b.price - a.price).slice(0, 5).map(p => {
+                    const mockSales = Math.floor(Math.random() * 150) + 50
+                    return {
+                        name: p.name,
+                        sales: mockSales,
+                        revenue: p.price * mockSales
+                    }
+                })
+                setTopProducts(sortedP)
+
+            } catch (error) {
+                console.error("Failed to load analytics data", error)
+            }
+        }
+        loadData()
+    }, [])
+
+    const handleExportPDF = () => {
+        window.print();
+    }
+
+    if (!salesData.length) return <div className="p-8 text-center">Loading analytics...</div>
 
     return (
-        <div className="flex flex-col gap-6 p-4 lg:p-6">
+        <div id="analytics-dashboard" className="flex flex-col gap-6 p-4 lg:p-6 bg-background">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Sales Analytics</h1>
@@ -76,7 +106,7 @@ export default function AnalyticsPage() {
                         Track your sales performance, revenue trends, and customer behavior.
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div data-html2canvas-ignore className="flex items-center gap-2">
                     <Select value={timeRange} onValueChange={setTimeRange}>
                         <SelectTrigger className="w-[140px]">
                             <IconCalendar className="mr-2 h-4 w-4" />
@@ -89,7 +119,7 @@ export default function AnalyticsPage() {
                             <SelectItem value="year">This Year</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Button variant="outline">
+                    <Button variant="outline" onClick={handleExportPDF}>
                         <IconDownload className="mr-2 h-4 w-4" />
                         Export Report
                     </Button>
@@ -107,8 +137,10 @@ export default function AnalyticsPage() {
                         </Badge>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">$84,200</div>
-                        <p className="text-xs text-muted-foreground">vs $74,800 last period</p>
+                        <div className="text-2xl font-bold">
+                            {new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(totalRevenue)}
+                        </div>
+                        <p className="text-xs text-muted-foreground">Real-time data</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -120,8 +152,8 @@ export default function AnalyticsPage() {
                         </Badge>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">2,285</div>
-                        <p className="text-xs text-muted-foreground">vs 2,112 last period</p>
+                        <div className="text-2xl font-bold">{totalOrders}</div>
+                        <p className="text-xs text-muted-foreground">Real-time data</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -133,8 +165,10 @@ export default function AnalyticsPage() {
                         </Badge>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">$36.85</div>
-                        <p className="text-xs text-muted-foreground">vs $35.50 last period</p>
+                        <div className="text-2xl font-bold">
+                            {new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(aov)}
+                        </div>
+                        <p className="text-xs text-muted-foreground">Real-time data</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -147,7 +181,7 @@ export default function AnalyticsPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">3.24%</div>
-                        <p className="text-xs text-muted-foreground">vs 3.28% last period</p>
+                        <p className="text-xs text-muted-foreground">Estimated</p>
                     </CardContent>
                 </Card>
             </div>
@@ -169,7 +203,7 @@ export default function AnalyticsPage() {
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} />
                             <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
-                            <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `$${value}`} />
+                            <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `₹${value}`} />
                             <ChartTooltip content={<ChartTooltipContent />} />
                             <Area
                                 type="monotone"
@@ -189,8 +223,8 @@ export default function AnalyticsPage() {
                 {/* Category Distribution */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Sales by Category</CardTitle>
-                        <CardDescription>Revenue distribution across product categories</CardDescription>
+                        <CardTitle>Products by Category</CardTitle>
+                        <CardDescription>Product distribution across categories</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <ChartContainer config={chartConfig} className="h-[250px]">
@@ -236,11 +270,11 @@ export default function AnalyticsPage() {
                             <BarChart data={topProducts} layout="vertical" margin={{ top: 0, right: 0, left: 40, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
                                 <XAxis type="number" hide />
-                                <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={120} />
+                                <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={150} />
                                 <ChartTooltip
                                     content={
                                         <ChartTooltipContent
-                                            formatter={(value, name) => [`$${Number(value).toLocaleString()}`, "Revenue"]}
+                                            formatter={(value, name) => [`₹${Number(value).toLocaleString("en-IN")}`, "Revenue"]}
                                         />
                                     }
                                 />

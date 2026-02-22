@@ -89,11 +89,6 @@ const data = {
       url: "/dashboard/reports/sales",
       icon: IconReport,
     },
-    {
-      name: "Documentation",
-      url: "/dashboard/docs",
-      icon: IconFileWord,
-    },
   ],
 }
 
