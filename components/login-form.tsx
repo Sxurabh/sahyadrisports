@@ -49,17 +49,20 @@ export function LoginForm({
   }
 
   const getRedirectUrl = () => {
-    let url = process.env.NEXT_PUBLIC_SITE_URL ?? // Set this to your site URL in production env.
-      process.env.NEXT_PUBLIC_VERCEL_URL ?? // Automatically set by Vercel.
-      (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+    // When running on the client, always use the actual browser URL
+    // This perfectly handles Vercel previews and production deployments
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}/auth/callback`;
+    }
 
-    // Make sure to include `https://` when not localhost.
+    // SSR fallback
+    let url = process.env.NEXT_PUBLIC_SITE_URL ??
+      process.env.NEXT_PUBLIC_VERCEL_URL ??
+      'http://localhost:3000';
+
     url = url.includes('http') ? url : `https://${url}`;
-
-    // Remove trailing slash if present
     url = url.replace(/\/+$/, '');
 
-    // If the URL already contains the path, return it as is (to avoid double path)
     if (url.includes('/auth/callback')) {
       return url;
     }
