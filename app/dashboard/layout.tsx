@@ -5,6 +5,7 @@ import {
     SidebarProvider,
 } from '@/components/ui/sidebar'
 import { getUser } from '@/lib/auth'
+import { SiteHeader } from '@/components/site-header'
 
 export default async function DashboardLayout({
     children,
@@ -26,7 +27,8 @@ export default async function DashboardLayout({
             }
         >
             <AppSidebar variant="inset" user={user} />
-            <SidebarInset>
+            <SidebarInset className="overflow-hidden overflow-y-auto">
+                <SiteHeader />
                 {children}
             </SidebarInset>
         </SidebarProvider>
